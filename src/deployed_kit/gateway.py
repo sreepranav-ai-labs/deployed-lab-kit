@@ -111,7 +111,10 @@ class Gateway:
 
     def _ollama(self, messages, json_mode, temperature) -> Completion:
         url = (self.base_url or "http://localhost:11434") + "/api/chat"
-        body = {"model": self.model, "messages": messages, "stream": False, "options": {"temperature": temperature}}
+        options = {"temperature": temperature}
+        if os.getenv("LAB_NUM_CTX"):  # Ollama's context window; long agent runs need more than its default
+            options["num_ctx"] = int(os.environ["LAB_NUM_CTX"])
+        body = {"model": self.model, "messages": messages, "stream": False, "options": options}
         if json_mode:
             body["format"] = "json"
         data = self._post(url, body, headers={})

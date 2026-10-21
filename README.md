@@ -33,8 +33,13 @@ Labs read these environment variables (or take the same values as arguments):
 | `LAB_API_KEY` | | Only for hosted providers |
 | `LAB_PRICE_IN_PER_1K` / `LAB_PRICE_OUT_PER_1K` | `0` | Price per 1,000 tokens, for cost per task |
 | `LAB_JSON_MODE` | `1` | Set to `0` if a provider rejects the JSON-mode parameter |
+| `LAB_NUM_CTX` | (Ollama's default) | Ollama only: the context window in tokens. Agent labs set `8192`, because a long investigation outgrows the default and Ollama would silently drop its start |
 
 `LAB_BASE_URL` can be a server root (`/v1/chat/completions` is added) or a cloud provider's versioned base URL ending in `/v1` or `/openapi` (`/chat/completions` is added).
+
+## Statistics for evaluations
+
+`deployed_kit.stats` puts a range next to every rate (Chapter 13, "How sure is the number?"): `wilson` for a rate from a small sample, `pass_at_k` and `pass_hat_k` for repeated runs, `t_interval` across runs, `mcnemar` to compare two versions on the same cases, and `disagreement` and `flip_rate` for verdicts that change between runs. No dependencies.
 
 ## Cloud paths
 

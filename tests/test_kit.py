@@ -50,3 +50,34 @@ def test_chat_completions_url_for_servers_and_cloud_providers():
     assert u("https://x.cloud.databricks.com/ai-gateway/mlflow/v1").endswith("/mlflow/v1/chat/completions")
     assert u("https://asia-south1-aiplatform.googleapis.com/v1/projects/p/locations/asia-south1/endpoints/openapi").endswith(
         "/endpoints/openapi/chat/completions")
+
+
+def test_stats_ranges_repeats_and_comparisons():
+    from deployed_kit import stats
+    assert stats.wilson(57, 60) == (0.863, 0.983)
+    assert stats.wilson(60, 60)[0] == 0.94
+    assert stats.pass_at_k(2, 3, 3) == 1.0 and stats.pass_hat_k(2, 3, 3) == 0.0 and stats.pass_hat_k(3, 3, 3) == 1.0
+    assert stats.mean_pass([(3, 3), (2, 3)], 3, every_time=True) == 0.5
+    assert stats.mean_pass([(3, 3), (0, 3)], 3, every_time=False) == 0.5
+    mean, lo, hi = stats.t_interval([0.9, 0.95, 0.92])
+    assert lo < mean < hi and round(mean, 2) == 0.92
+    assert stats.mcnemar(5, 2) == 0.4531 and stats.mcnemar(0, 0) == 1.0 and stats.mcnemar(10, 0) < 0.01
+    assert stats.disagreement([3, 0], 3) == 0.0 and stats.disagreement([2], 3) == 0.6667
+    assert stats.flip_rate([["A", "A"], ["A", "B"]]) == 0.5
+
+
+def test_ollama_context_window_is_set_only_when_asked():
+    import os
+    from deployed_kit import gateway as g
+    sent = {}
+    gw = g.Gateway(provider="ollama", model="m")
+    gw._post = lambda url, body, headers: sent.update(body) or {"message": {"content": "{}"}}
+    os.environ.pop("LAB_NUM_CTX", None)
+    gw.complete([{"role": "user", "content": "x"}])
+    assert "num_ctx" not in sent["options"]
+    os.environ["LAB_NUM_CTX"] = "8192"
+    try:
+        gw.complete([{"role": "user", "content": "x"}])
+        assert sent["options"]["num_ctx"] == 8192
+    finally:
+        os.environ.pop("LAB_NUM_CTX")
