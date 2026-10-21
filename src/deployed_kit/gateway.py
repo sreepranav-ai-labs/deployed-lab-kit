@@ -8,14 +8,21 @@ and cost for every call, which the operations milestone builds on (Chapter 14).
 Providers:
   mock               a Python function you pass in; used by tests and CI
   ollama             a local Ollama server (default http://localhost:11434)
-  openai_compatible  any server with an OpenAI-style /v1/chat/completions
-                     endpoint, such as vLLM or a cloud provider's compatible API
+  openai_compatible  any server with an OpenAI-style chat completions endpoint:
+                     vLLM, or the compatible endpoints of Microsoft Foundry,
+                     Amazon Bedrock, Google Cloud, Snowflake Cortex and Databricks
+                     (see docs/cloud-paths.md for the base URLs)
+
+LAB_BASE_URL may be a server root (http://localhost:8000, to which /v1 is added)
+or a provider's versioned base URL ending in /v1, /v2, ... or /openapi, used as is.
+Set LAB_JSON_MODE=0 for a provider that rejects the response_format parameter.
 """
 
 from __future__ import annotations
 
 import json
 import os
+import re
 import time
 import urllib.request
 from dataclasses import dataclass, field
@@ -46,6 +53,16 @@ class Completion:
         if start == -1 or end == -1:
             raise ValueError(f"model did not return JSON: {self.text[:200]!r}")
         return json.loads(text[start : end + 1])
+
+
+def chat_completions_url(base_url: str) -> str:
+    """Server roots get /v1 added; versioned provider base URLs are used as they are."""
+    base = base_url.rstrip("/")
+    if base.endswith("/chat/completions"):
+        return base
+    if re.search(r"/(v\d+|openapi)$", base):
+        return base + "/chat/completions"
+    return base + "/v1/chat/completions"
 
 
 class Gateway:
@@ -110,9 +127,9 @@ class Gateway:
     def _openai_compatible(self, messages, json_mode, temperature) -> Completion:
         if not self.base_url:
             raise ValueError("openai_compatible needs LAB_BASE_URL, for example http://localhost:8000")
-        url = self.base_url + "/v1/chat/completions"
+        url = chat_completions_url(self.base_url)
         body = {"model": self.model, "messages": messages, "temperature": temperature}
-        if json_mode:
+        if json_mode and os.getenv("LAB_JSON_MODE", "1") != "0":
             body["response_format"] = {"type": "json_object"}
         headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
         data = self._post(url, body, headers=headers)

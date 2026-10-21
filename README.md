@@ -1,6 +1,6 @@
 # deployed-kit
 
-Shared building blocks for the companion labs of *Deployed: How Forward Deployed Engineers Take Frontier AI Into Production* by Venkata Ramana Sudhakar Polavarapu (Sree Pranav Press).
+Shared building blocks for the companion labs of *Deployed: How Forward Deployed Engineers Take Frontier AI Into Production* by Venkata Ramana Sudhakar Polavarapu.
 
 Every lab installs this package so that the same ideas look the same everywhere:
 
@@ -32,6 +32,13 @@ Labs read these environment variables (or take the same values as arguments):
 | `LAB_BASE_URL` | `http://localhost:11434` | Server address, if not the default |
 | `LAB_API_KEY` | | Only for hosted providers |
 | `LAB_PRICE_IN_PER_1K` / `LAB_PRICE_OUT_PER_1K` | `0` | Price per 1,000 tokens, for cost per task |
+| `LAB_JSON_MODE` | `1` | Set to `0` if a provider rejects the JSON-mode parameter |
+
+`LAB_BASE_URL` can be a server root (`/v1/chat/completions` is added) or a cloud provider's versioned base URL ending in `/v1` or `/openapi` (`/chat/completions` is added).
+
+## Cloud paths
+
+The labs run locally so that anyone can run them free. Every lab calls its model through this gateway, so pointing a lab at a hosted model is a configuration change. [docs/cloud-paths.md](docs/cloud-paths.md) explains how each case company's platform maps onto the labs, and how to point the gateway at Microsoft Foundry, Amazon Bedrock, Google Cloud, Snowflake Cortex or Databricks.
 
 ## Test
 

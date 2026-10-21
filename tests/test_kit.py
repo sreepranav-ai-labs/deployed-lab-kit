@@ -38,3 +38,15 @@ def test_synth_is_seeded_and_ids_are_not_real():
     assert [a.name() for _ in range(5)] == [b.name() for _ in range(5)]
     assert a.fake_phone().startswith("5")
     assert a.fake_national_id().startswith("0")
+
+
+def test_chat_completions_url_for_servers_and_cloud_providers():
+    from deployed_kit.gateway import chat_completions_url as u
+    assert u("http://localhost:8000") == "http://localhost:8000/v1/chat/completions"
+    assert u("http://localhost:8000/") == "http://localhost:8000/v1/chat/completions"
+    assert u("https://res.openai.azure.com/openai/v1/") == "https://res.openai.azure.com/openai/v1/chat/completions"
+    assert u("https://bedrock-runtime.ap-south-1.amazonaws.com/openai/v1").endswith("/openai/v1/chat/completions")
+    assert u("https://acct.snowflakecomputing.com/api/v2/cortex/v1").endswith("/cortex/v1/chat/completions")
+    assert u("https://x.cloud.databricks.com/ai-gateway/mlflow/v1").endswith("/mlflow/v1/chat/completions")
+    assert u("https://asia-south1-aiplatform.googleapis.com/v1/projects/p/locations/asia-south1/endpoints/openapi").endswith(
+        "/endpoints/openapi/chat/completions")
